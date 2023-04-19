@@ -1,17 +1,36 @@
-const { loginCheck } = require('../controller/user')
+const { login } = require('../controller/user')
 const { SuccessModel, ErrorModel } = require('../model/resModel')
 
+const getCookieExpires = () => {
+	const d = new Date()
+	d.setTime(d.getTime() + 24 * 60 * 60 * 1000)
+	console.log(' d.toGMTString() is', d.toGMTString())
+	return d.toGMTString()
+}
 const handleUserRouter = (req, res) => {
 	const method = req.method
 	const path = req.path
 
 	// 登录接口
-	if (method === 'POST' && path === '/api/user/login') {
-		const username = req.body.username || ''
-		const password = req.body.password || ''
-		const result = loginCheck(username, password)
+	if (method === 'GET' && path === '/api/user/login') {
+		// const { username, password } = req.body
+		const { username, password } = req.query
+		const result = login(username, password)
 		return result.then((data) => {
 			if (data.username) {
+				if (data.username) {
+					req.session.username = data.username
+					req.session.realName = data.realname
+				}
+
+				console.log('req.session', req.session)
+				// 操作cookie
+				res.setHeader(
+					'set-cookie',
+					`username=${
+						data.username
+					}; path=/; httpOnly; expires=${getCookieExpires()}`
+				)
 				return new SuccessModel()
 			}
 			return new ErrorModel('登录失败')
@@ -25,10 +44,15 @@ const handleUserRouter = (req, res) => {
 		// }
 	}
 	// 登出接口
-	if (method === 'GET' && path === '/api/user/logout') {
-		return {
-			msg: '这是登出接口',
+	if (method === 'GET' && path === '/api/user/login-test') {
+		if (req.session.username) {
+			return Promise.resolve(
+				new SuccessModel({
+					username: req.cookie.username,
+				})
+			)
 		}
+		return Promise.resolve(new ErrorModel('尚未登录'))
 	}
 }
 // https://dev.mysql.com/downloads/mysql/
