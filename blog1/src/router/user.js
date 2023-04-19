@@ -1,5 +1,6 @@
 const { login } = require('../controller/user')
 const { SuccessModel, ErrorModel } = require('../model/resModel')
+const { set } = require('../db/redis')
 
 const getCookieExpires = () => {
 	const d = new Date()
@@ -18,19 +19,18 @@ const handleUserRouter = (req, res) => {
 		const result = login(username, password)
 		return result.then((data) => {
 			if (data.username) {
-				if (data.username) {
-					req.session.username = data.username
-					req.session.realName = data.realname
-				}
+				req.session.username = data.username
+				req.session.realName = data.realname
 
-				console.log('req.session', req.session)
+				set(req.sessionId, req.session)
+				// console.log('req.session', req.session)
 				// 操作cookie
-				res.setHeader(
-					'set-cookie',
-					`username=${
-						data.username
-					}; path=/; httpOnly; expires=${getCookieExpires()}`
-				)
+				// res.setHeader(
+				// 	'set-cookie',
+				// 	`username=${
+				// 		data.username
+				// 	}; path=/; httpOnly; expires=${getCookieExpires()}`
+				// )
 				return new SuccessModel()
 			}
 			return new ErrorModel('登录失败')
@@ -48,7 +48,7 @@ const handleUserRouter = (req, res) => {
 		if (req.session.username) {
 			return Promise.resolve(
 				new SuccessModel({
-					username: req.cookie.username,
+					session: req.session,
 				})
 			)
 		}
