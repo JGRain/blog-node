@@ -1,3 +1,4 @@
+const xss = require('xss')
 const { exec } = require('../db/mysql')
 const getList = (author, keyword) => {
 	// 1=1 是 防止后面没有author，keyword做容错
@@ -20,7 +21,9 @@ const getDetail = (id) => {
 }
 
 const newBlog = (blogData = {}) => {
-	const { title, content, author } = blogData
+	let { title, content, author } = blogData
+	title = xss(title)
+	content = xss(content)
 	const createtime = Date.now()
 
 	const sql = `insert into blogs(title,content,createtime,author)values('${title}','${content}','${createtime}','${author}');`
