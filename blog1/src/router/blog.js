@@ -58,7 +58,6 @@ const handleBlogRouter = (req, res) => {
 		if (loginCheckResult) {
 			return loginCheckResult
 		}
-		// 假数据 待开发登录时候再改成真数据
 		req.body.author = req.session.username
 		const result = newBlog(req.body)
 		return result.then((data) => {
@@ -95,7 +94,6 @@ const handleBlogRouter = (req, res) => {
 		if (loginCheckResult) {
 			return loginCheckResult
 		}
-		// 假数据 待开发登录时候再改成真数据
 		req.body.author = req.session.username
 
 		const result = deleteDetail(id, req.body.author)
