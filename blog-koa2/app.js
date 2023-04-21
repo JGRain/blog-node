@@ -5,6 +5,12 @@ const json = require('koa-json')
 const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
 const logger = require('koa-logger')
+const morgan = require('koa-morgan')
+var path = require('path')
+var fs = require('fs')
+
+
+
 const session = require('koa-generic-session')
 const redisStore = require('koa-redis')
 const { REDIS_CONF } = require('./conf/db')
@@ -16,6 +22,28 @@ const blog = require('./routes/blog')
 
 // error handler
 onerror(app)
+
+const ENV = process.env.NODE_ENV
+// app.use(
+// 	logger('dev', {
+// 		stream: process.stdout,
+// 	})
+// )
+if (ENV !== 'production') {
+	// 开发、测试环境
+	app.use(morgan('dev'))
+} else {
+	// 线上环境
+	const logFileName = path.join(__dirname, 'logs', 'access.log')
+	const wirteStream = fs.createWriteStream(logFileName, {
+		flags: 'a',
+	})
+	app.use(
+		morgan('combined', {
+			stream: wirteStream,
+		})
+	)
+}
 
 // middlewares
 app.use(
